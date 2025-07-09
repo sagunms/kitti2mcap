@@ -197,14 +197,17 @@ def save_camera_data(bag, kitti_type, kitti, util, bridge, camera, camera_frame_
         with open(os.path.join(image_dir, 'timestamps.txt'), 'r', encoding='utf-8') as f:
             image_datetimes = map(lambda x: datetime.strptime(x[:-4], '%Y-%m-%d %H:%M:%S.%f'), f.readlines())
         
+        # Hack for rectified sequences
         calib = CameraInfo()
         calib.header.frame_id = camera_frame_id
         calib.height, calib.width = tuple(util['S_rect_{}'.format(camera_pad)].tolist())
         calib.distortion_model = 'plumb_bob'
-        calib.k = util['K_{}'.format(camera_pad)].flatten().tolist()
         calib.r = util['R_rect_{}'.format(camera_pad)].flatten().tolist()
-        calib.d = util['D_{}'.format(camera_pad)].flatten().tolist()
+        # calib.d = util['D_{}'.format(camera_pad)].flatten().tolist()
+        calib.d = np.zeros(5)
         calib.p = util['P_rect_{}'.format(camera_pad)].flatten().tolist()
+        # calib.k = util['K_{}'.format(camera_pad)].flatten().tolist()
+        calib.k = [calib.p[0], 0.0, calib.p[2], 0.0, calib.p[5], calib.p[6], 0.0, 0.0, 0.0]
             
     elif kitti_type.find("odom") != -1:
         camera_pad = '{0:01d}'.format(camera)
